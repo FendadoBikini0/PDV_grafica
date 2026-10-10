@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos | DigitalVX</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">D</span>
+            <span>Digital<span class="brand-accent">VX</span><small>GESTÃO COMERCIAL</small></span>
+        </a>
+        <p class="nav-heading">MENU PRINCIPAL</p>
+        <nav class="main-nav" aria-label="Menu principal">
+            <a class="nav-link" th:href="@{/}"><span class="nav-icon">▦</span>Visão geral</a>
+            <a class="nav-link" th:href="@{/clientes}"><span class="nav-icon">♙</span>Clientes</a>
+            <a class="nav-link active" th:href="@{/produtos}"><span class="nav-icon">▧</span>Produtos</a>
+            <a class="nav-link" th:href="@{/servicos}"><span class="nav-icon">◇</span>Serviços</a>
+            <a class="nav-link disabled" href="#" aria-disabled="true"><span class="nav-icon">▤</span>Pedidos e vendas</a>
+            <a class="nav-link disabled" href="#" aria-disabled="true"><span class="nav-icon">◇</span>Pagamentos</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            <span>Sistema operacional<small>DigitalVX PDV</small></span>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">CATÁLOGO</p>
+                <h1>Produtos</h1>
+            </div>
+            <a class="button button-primary" th:href="@{/produtos}">＋ Novo produto</a>
+        </header>
+
+        <div class="page-intro">
+            <div><h2>Seus produtos</h2><p>Gerencie os produtos, preços e quantidades disponíveis em estoque.</p></div>
+            <span class="count-badge"><strong th:text="${#lists.size(produtos)}">0</strong> cadastrados</span>
+        </div>
+
+        <div class="alert alert-error" role="alert" th:if="${erro}" th:text="${erro}"></div>
+
+        <section class="content-card form-card">
+            <div class="card-heading">
+                <div><span class="card-heading-icon blue">▧</span><div><h2 th:text="${produto.id == null ? 'Cadastrar produto' : 'Editar produto'}">Cadastrar produto</h2><p>Informe os dados do produto.</p></div></div>
+            </div>
+            <form th:action="@{/produtos/salvar}" th:object="${produto}" method="post">
+                <input type="hidden" th:field="*{id}">
+                <div class="form-grid product-form-grid">
+                    <label class="form-field">
+                        <span>Nome do produto <b>*</b></span>
+                        <input type="text" th:field="*{nome}" placeholder="Ex.: Caneca personalizada" required maxlength="255">
+                    </label>
+                    <label class="form-field">
+                        <span>Código único <b>*</b></span>
+                        <input type="text" th:field="*{codigo}" placeholder="Ex.: CAN-001" required maxlength="255">
+                    </label>
+                    <label class="form-field">
+                        <span>Preço <b>*</b></span>
+                        <input type="number" th:field="*{preco}" placeholder="0,00" min="0" step="0.01" required>
+                    </label>
+                    <label class="form-field">
+                        <span>Estoque disponível <b>*</b></span>
+                        <input type="number" th:field="*{estoque}" placeholder="0" min="0" step="1" required>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <a class="button button-quiet" th:if="${produto.id != null}" th:href="@{/produtos}">Cancelar</a>
+                    <button class="button button-primary" type="submit" th:text="${produto.id == null ? 'Salvar produto' : 'Salvar alterações'}">Salvar produto</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="content-card table-card">
+            <div class="card-heading">
+                <div><span class="card-heading-icon violet">☷</span><div><h2>Lista de produtos</h2><p>Produtos cadastrados no sistema</p></div></div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>PRODUTO</th><th>CÓDIGO</th><th>PREÇO</th><th>ESTOQUE</th><th class="actions-column">AÇÕES</th></tr></thead>
+                    <tbody>
+                        <tr th:each="item : ${produtos}">
+                            <td><span class="table-avatar" th:text="${#strings.substring(item.nome, 0, 1).toUpperCase()}">P</span><strong th:text="${item.nome}">Nome do produto</strong></td>
+                            <td th:text="${item.codigo}">COD-001</td>
+                            <td th:text="|R$ ${item.preco}|">R$ 0,00</td>
+                            <td th:text="${item.estoque}">0</td>
+                            <td class="actions-column"><a class="table-action" th:href="@{/produtos(editar=${item.id})}" th:aria-label="|Editar ${item.nome}|">Editar</a></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(produtos)}">
+                            <td class="empty-state" colspan="5"><strong>Nenhum produto cadastrado ainda</strong><span>Use o formulário acima para adicionar seu primeiro produto.</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <footer class="page-footer">DigitalVX <span>·</span> Gestão simples para o seu negócio</footer>
+    </main>
+</body>
+</html>

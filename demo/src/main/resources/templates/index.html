@@ -1,16 +1,104 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DigitalVX</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <title>Painel | DigitalVX</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
-    <main class="container">
-        <h1>DigitalVX</h1>
-        <p>Estrutura HTML criada com sucesso.</p>
-        <button onclick="alert('Página carregada!')">Clique aqui</button>
+<body class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">D</span>
+            <span>Digital<span class="brand-accent">VX</span><small>GESTÃO COMERCIAL</small></span>
+        </a>
+        <p class="nav-heading">MENU PRINCIPAL</p>
+        <nav class="main-nav" aria-label="Menu principal">
+            <a class="nav-link active" th:href="@{/}"><span class="nav-icon">▦</span>Visão geral</a>
+            <a class="nav-link" th:href="@{/clientes}"><span class="nav-icon">♙</span>Clientes</a>
+            <a class="nav-link" th:href="@{/produtos}"><span class="nav-icon">▧</span>Produtos</a>
+            <a class="nav-link" th:href="@{/servicos}"><span class="nav-icon">◇</span>Serviços</a>
+            <a class="nav-link disabled" href="#" aria-disabled="true"><span class="nav-icon">▤</span>Pedidos e vendas</a>
+            <a class="nav-link disabled" href="#" aria-disabled="true"><span class="nav-icon">◇</span>Pagamentos</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            <span>Sistema operacional<small>DigitalVX PDV</small></span>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">PAINEL DE CONTROLE</p>
+                <h1>Visão geral</h1>
+            </div>
+            <div class="profile-chip"><span class="avatar">A</span><span>Administrador<small>Bem-vindo(a)</small></span></div>
+        </header>
+
+        <section class="welcome-card">
+            <div>
+                <p class="eyebrow welcome-eyebrow">SEU NEGÓCIO EM UM SÓ LUGAR</p>
+                <h2>Olá! Vamos cuidar das suas vendas?</h2>
+                <p>Acompanhe sua operação e acesse rapidamente as principais funcionalidades.</p>
+                <a class="button button-light" th:href="@{/clientes}">Acessar clientes <span aria-hidden="true">→</span></a>
+            </div>
+            <div class="welcome-art" aria-hidden="true"><span>DVX</span><i></i><b></b></div>
+        </section>
+
+        <section class="section-block">
+            <div class="section-title">
+                <div><p class="eyebrow">RESUMO DA OPERAÇÃO</p><h2>Indicadores</h2></div>
+                <span class="muted-label">Visão geral</span>
+            </div>
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <span class="stat-icon violet">♙</span>
+                    <p>Clientes cadastrados</p>
+                    <strong th:text="${totalClientes}">0</strong>
+                    <a th:href="@{/clientes}">Ver clientes <span aria-hidden="true">→</span></a>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-icon blue">▧</span>
+                    <p>Produtos cadastrados</p>
+                    <strong th:text="${totalProdutos}">0</strong>
+                    <a th:href="@{/produtos}">Ver produtos <span aria-hidden="true">→</span></a>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-icon violet">◇</span>
+                    <p>Serviços cadastrados</p>
+                    <strong th:text="${totalServicos}">0</strong>
+                    <a th:href="@{/servicos}">Ver serviços <span aria-hidden="true">→</span></a>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-icon orange">▤</span>
+                    <p>Pedidos realizados</p>
+                    <strong>—</strong>
+                    <span class="coming-soon">Disponível em breve</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-block">
+            <div class="section-title">
+                <div><p class="eyebrow">ATALHOS</p><h2>Acesso rápido</h2></div>
+            </div>
+            <div class="shortcuts-grid">
+                <a class="shortcut-card" th:href="@{/clientes}">
+                    <span class="shortcut-icon violet">♙</span><span><strong>Clientes</strong><small>Cadastre e consulte clientes</small></span><b aria-hidden="true">→</b>
+                </a>
+                <a class="shortcut-card" th:href="@{/produtos}">
+                    <span class="shortcut-icon blue">▧</span><span><strong>Produtos</strong><small>Cadastre e consulte produtos</small></span><b aria-hidden="true">→</b>
+                </a>
+                <a class="shortcut-card" th:href="@{/servicos}">
+                    <span class="shortcut-icon violet">◇</span><span><strong>Serviços</strong><small>Cadastre e consulte serviços</small></span><b aria-hidden="true">→</b>
+                </a>
+                <div class="shortcut-card inactive">
+                    <span class="shortcut-icon orange">▤</span><span><strong>Nova venda</strong><small>Registre um pedido</small></span><b aria-hidden="true">→</b>
+                </div>
+            </div>
+        </section>
+        <footer class="page-footer">DigitalVX <span>·</span> Gestão simples para o seu negócio</footer>
     </main>
 </body>
 </html>
