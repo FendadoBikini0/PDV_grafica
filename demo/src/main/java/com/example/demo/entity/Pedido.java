@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -36,7 +37,7 @@ public class Pedido {
 	@Column(nullable = false)
 	private LocalDateTime data;
 
-	private String status;
+	private String status = "ABERTO";
 
 	@Column(precision = 12, scale = 2)
 	private BigDecimal total = BigDecimal.ZERO;
@@ -49,7 +50,7 @@ public class Pedido {
 	@JoinColumn(name = "responsavel_id", nullable = false)
 	private Funcionario responsavel;
 
-	@OneToMany(mappedBy = "pedido")
+	@OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL)
 	private List<ItemPedido> itens = new ArrayList<>();
 
 	@OneToMany(mappedBy = "pedido")

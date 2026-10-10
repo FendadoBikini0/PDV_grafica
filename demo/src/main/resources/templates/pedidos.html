@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - DigitalVX</title>
+</head>
+<body>
+    <h1>Pedidos</h1>
+
+    <p th:if="${sucesso}" th:text="${sucesso}" role="status"></p>
+    <p th:if="${erro}" th:text="${erro}" role="alert"></p>
+
+    <form th:action="@{/pedidos/salvar}" th:object="${pedidoForm}" method="post">
+        <p th:if="${erro}" th:text="${erro}" role="alert"></p>
+
+        <div>
+            <label for="numero">Número do pedido</label>
+            <input id="numero" type="text" th:field="*{numero}" required>
+        </div>
+
+        <div>
+            <label for="clienteId">Cliente</label>
+            <select id="clienteId" th:field="*{clienteId}" required>
+                <option value="">Selecione um cliente</option>
+                <option th:each="cliente : ${clientes}"
+                        th:value="${cliente.id}"
+                        th:text="${cliente.nome}"></option>
+            </select>
+        </div>
+
+        <div>
+            <label for="responsavelId">Funcionário responsável</label>
+            <select id="responsavelId" th:field="*{responsavelId}" required>
+                <option value="">Selecione um funcionário</option>
+                <option th:each="funcionario : ${funcionarios}"
+                        th:value="${funcionario.id}"
+                        th:text="${funcionario.nome}"></option>
+            </select>
+        </div>
+
+        <h2>Itens do pedido</h2>
+        <div id="itens-pedido"></div>
+        <button id="adicionar-item" type="button">Adicionar item</button>
+
+        <p>
+            <button type="submit">Salvar pedido</button>
+        </p>
+    </form>
+
+    <template id="modelo-item">
+        <fieldset class="item-pedido">
+            <legend>Item</legend>
+            <div>
+                <label>Tipo</label>
+                <select class="tipo-item" required>
+                    <option value="">Selecione o tipo</option>
+                    <option value="PRODUTO">Produto</option>
+                    <option value="SERVICO">Serviço</option>
+                </select>
+            </div>
+            <div>
+                <label>Produto ou serviço</label>
+                <select class="referencia-item" required disabled>
+                    <option value="">Selecione primeiro o tipo</option>
+                    <optgroup label="Produtos" data-tipo="PRODUTO" hidden>
+                        <option th:each="produto : ${produtos}"
+                                th:value="${produto.id}"
+                                th:text="${produto.nome}"></option>
+                    </optgroup>
+                    <optgroup label="Serviços" data-tipo="SERVICO" hidden>
+                        <option th:each="servico : ${servicos}"
+                                th:value="${servico.id}"
+                                th:text="${servico.tipo}"></option>
+                    </optgroup>
+                </select>
+            </div>
+            <div>
+                <label>Quantidade</label>
+                <input class="quantidade-item" type="number" min="1" step="1" value="1" required>
+            </div>
+            <button class="remover-item" type="button">Remover item</button>
+        </fieldset>
+    </template>
+
+    <h2>Pedidos cadastrados</h2>
+    <p th:if="${#lists.isEmpty(pedidos)}">Nenhum pedido cadastrado.</p>
+
+    <ul th:unless="${#lists.isEmpty(pedidos)}">
+        <li th:each="pedido : ${pedidos}">
+            <span th:text="${pedido.numero}"></span>
+            -
+            <span th:text="${pedido.status}"></span>
+            -
+            <span th:text="${pedido.total}"></span>
+            <form th:if="${pedido.status == 'PRONTO'}"
+                  th:action="@{/pedidos/{id}/entregar(id=${pedido.id})}"
+                  method="post">
+                <button type="submit">Marcar como entregue</button>
+            </form>
+        </li>
+    </ul>
+
+    <a th:href="@{/}">Voltar ao início</a>
+
+    <script>
+        const itensPedido = document.getElementById("itens-pedido");
+        const modeloItem = document.getElementById("modelo-item");
+
+        function atualizarIndices() {
+            itensPedido.querySelectorAll(".item-pedido").forEach((item, index) => {
+                item.querySelector(".tipo-item").name = `itens[${index}].tipo`;
+                item.querySelector(".referencia-item").name = `itens[${index}].referenciaId`;
+                item.querySelector(".quantidade-item").name = `itens[${index}].quantidade`;
+            });
+        }
+
+        document.getElementById("adicionar-item").addEventListener("click", () => {
+            itensPedido.appendChild(modeloItem.content.cloneNode(true));
+            atualizarIndices();
+        });
+
+        itensPedido.addEventListener("change", (event) => {
+            if (!event.target.classList.contains("tipo-item")) {
+                return;
+            }
+
+            const item = event.target.closest(".item-pedido");
+            const referencia = item.querySelector(".referencia-item");
+            referencia.value = "";
+            referencia.disabled = !event.target.value;
+            referencia.querySelectorAll("optgroup").forEach((grupo) => {
+                grupo.hidden = grupo.dataset.tipo !== event.target.value;
+            });
+            referencia.options[0].textContent = event.target.value
+                ? "Selecione um item"
+                : "Selecione primeiro o tipo";
+        });
+
+        itensPedido.addEventListener("click", (event) => {
+            if (event.target.classList.contains("remover-item")) {
+                event.target.closest(".item-pedido").remove();
+                atualizarIndices();
+            }
+        });
+    </script>
+</body>
+</html>
