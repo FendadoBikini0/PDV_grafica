@@ -138,6 +138,22 @@ public class PedidoController {
         return "redirect:/pedidos";
     }
 
+    @PostMapping("/{id}/avancar")
+    public String avancar(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            pedidoService.avancarPedido(id);
+            redirectAttributes.addFlashAttribute(
+                    "sucesso", "Status do pedido atualizado com sucesso.");
+        } catch (IllegalArgumentException exception) {
+            redirectAttributes.addFlashAttribute(
+                    "erro", exception.getMessage());
+        }
+
+        return "redirect:/pedidos";
+    }
+
     private void prepararModelo(Model model, PedidoForm pedidoForm) {
         model.addAttribute("pedidoForm", pedidoForm);
         model.addAttribute("pedidos", pedidoRepository.findAll());

@@ -7,6 +7,7 @@ import com.example.demo.repository.PedidoRepository;
 import com.example.demo.repository.ProdutoRepository;
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,6 +86,36 @@ public class PedidoService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("Pedido não encontrado."));
 
+        return entregarPedido(pedido);
+    }
+
+    @Transactional
+    public Pedido avancarPedido(Long pedidoId) {
+        Pedido pedido = pedidoRepository.findById(pedidoId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Pedido não encontrado."));
+
+        String status = pedido.getStatus();
+        if (status == null) {
+            throw new IllegalArgumentException("O status do pedido é inválido.");
+        }
+
+        switch (status.toUpperCase(Locale.ROOT)) {
+            case "ABERTO" -> pedido.setStatus("EM PRODUÇÃO");
+            case "EM PRODUÇÃO" -> pedido.setStatus("PRONTO");
+            case "PRONTO" -> {
+                return entregarPedido(pedido);
+            }
+            case "ENTREGUE" -> throw new IllegalArgumentException(
+                    "Este pedido já foi entregue.");
+            default -> throw new IllegalArgumentException(
+                    "O pedido possui um status inválido para avançar.");
+        }
+
+        return pedidoRepository.save(pedido);
+    }
+
+    private Pedido entregarPedido(Pedido pedido) {
         if ("ENTREGUE".equalsIgnoreCase(pedido.getStatus())) {
             throw new IllegalArgumentException(
                     "Este pedido já foi entregue.");

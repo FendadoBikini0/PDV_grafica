@@ -16,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -209,6 +208,79 @@ class PedidoServiceTest {
         verify(pedidoRepository, never()).save(any(Pedido.class));
     }
 
+    @Test
+    void deveAvancarPedidoAbertoParaEmProducao() {
+        Pedido pedido = criarPedido(14L, "ABERTO");
+        when(pedidoRepository.findById(14L)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.save(pedido)).thenReturn(pedido);
+
+        Pedido resultado = pedidoService.avancarPedido(14L);
+
+        assertSame(pedido, resultado);
+        assertEquals("EM PRODUÇÃO", pedido.getStatus());
+        verifyNoInteractions(produtoRepository);
+    }
+
+    @Test
+    void deveAvancarPedidoEmProducaoParaPronto() {
+        Pedido pedido = criarPedido(15L, "EM PRODUÇÃO");
+        when(pedidoRepository.findById(15L)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.save(pedido)).thenReturn(pedido);
+
+        Pedido resultado = pedidoService.avancarPedido(15L);
+
+        assertSame(pedido, resultado);
+        assertEquals("PRONTO", pedido.getStatus());
+        verifyNoInteractions(produtoRepository);
+    }
+
+    @Test
+    void deveEntregarPedidoProntoAoAvancarEBaixarEstoque() {
+        Produto produto = criarProduto(6L, "Produto F", 3);
+        Pedido pedido = criarPedido(16L, "PRONTO");
+        pedido.adicionarItem(criarItemProduto(produto, 2));
+        when(pedidoRepository.findById(16L)).thenReturn(Optional.of(pedido));
+        when(pedidoRepository.save(pedido)).thenReturn(pedido);
+
+        Pedido resultado = pedidoService.avancarPedido(16L);
+
+        assertSame(pedido, resultado);
+        assertEquals("ENTREGUE", pedido.getStatus());
+        assertEquals(1, produto.getEstoque());
+        verify(produtoRepository).save(produto);
+        verify(pedidoRepository).save(pedido);
+    }
+
+    @Test
+    void deveRejeitarAvancoDePedidoEntregue() {
+        Pedido pedido = criarPedido(17L, "ENTREGUE");
+        when(pedidoRepository.findById(17L)).thenReturn(Optional.of(pedido));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> pedidoService.avancarPedido(17L)
+        );
+
+        assertEquals("ENTREGUE", pedido.getStatus());
+        verifyNoInteractions(produtoRepository);
+        verify(pedidoRepository, never()).save(any(Pedido.class));
+    }
+
+    @Test
+    void deveRejeitarAvancoDePedidoComStatusDesconhecido() {
+        Pedido pedido = criarPedido(18L, "CANCELADO");
+        when(pedidoRepository.findById(18L)).thenReturn(Optional.of(pedido));
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> pedidoService.avancarPedido(18L)
+        );
+
+        assertEquals("CANCELADO", pedido.getStatus());
+        verifyNoInteractions(produtoRepository);
+        verify(pedidoRepository, never()).save(any(Pedido.class));
+    }
+
     private Produto criarProduto(Long id, String nome, int estoque) {
         Produto produto = new Produto();
         produto.setId(id);
@@ -218,9 +290,13 @@ class PedidoServiceTest {
     }
 
     private Pedido criarPedidoPronto(Long id) {
+        return criarPedido(id, "PRONTO");
+    }
+
+    private Pedido criarPedido(Long id, String status) {
         Pedido pedido = new Pedido();
         pedido.setId(id);
-        pedido.setStatus("PRONTO");
+        pedido.setStatus(status);
         return pedido;
     }
 

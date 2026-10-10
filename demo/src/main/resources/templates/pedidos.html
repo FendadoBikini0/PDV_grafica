@@ -93,10 +93,13 @@
             <span th:text="${pedido.status}"></span>
             -
             <span th:text="${pedido.total}"></span>
-            <form th:if="${pedido.status == 'PRONTO'}"
-                  th:action="@{/pedidos/{id}/entregar(id=${pedido.id})}"
+            <form th:if="${pedido.status == 'ABERTO' or pedido.status == 'EM PRODUÇÃO' or pedido.status == 'PRONTO'}"
+                  th:action="@{/pedidos/{id}/avancar(id=${pedido.id})}"
                   method="post">
-                <button type="submit">Marcar como entregue</button>
+                <button type="submit"
+                        th:text="${pedido.status == 'ABERTO' ? 'Iniciar produção' : (pedido.status == 'EM PRODUÇÃO' ? 'Marcar como pronto' : 'Marcar como entregue')}">
+                    Avançar pedido
+                </button>
             </form>
         </li>
     </ul>
