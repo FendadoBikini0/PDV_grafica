@@ -1,0 +1,45 @@
+
+@startuml
+title DigitalVX - Diagrama de Casos de Uso
+
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Atendente" as Atendente
+actor "Administrador" as Admin
+
+rectangle "Sistema DigitalVX" {
+  usecase "Realizar login" as UC1
+  usecase "Gerenciar clientes" as UC2
+  usecase "Consultar produtos\ne serviços" as UC3
+  usecase "Registrar pedido" as UC4
+  usecase "Registrar pagamento" as UC5
+  usecase "Atualizar status\ndo pedido" as UC6
+  usecase "Consultar histórico\nde pedidos" as UC7
+  usecase "Gerenciar produtos\ne serviços" as UC8
+  usecase "Controlar estoque" as UC9
+  usecase "Gerenciar usuários" as UC10
+  usecase "Consultar relatórios" as UC11
+}
+
+Atendente --> UC1
+Atendente --> UC2
+Atendente --> UC3
+Atendente --> UC4
+Atendente --> UC5
+Atendente --> UC6
+Atendente --> UC7
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+Admin --> UC10
+Admin --> UC11
+
+@enduml
