@@ -1,0 +1,81 @@
+
+@startuml
+title DigitalVX - Diagrama de Classes
+
+skinparam classAttributeIconSize 0
+
+abstract class Pessoa {
+  - id: Long
+  - nome: String
+  - email: String
+  - numero: String
+}
+
+class Cliente {
+  - historico: List<Pedido>
+}
+
+class Funcionario {
+  - pedidosRegistrados: List<Pedido>
+  + registrarPedido(pedido: Pedido)
+}
+
+class Pedido {
+  - id: Long
+  - numero: String
+  - data: LocalDateTime
+  - status: String
+  - total: BigDecimal
+  + calcularTotal(): BigDecimal
+  + adicionarItem(item: ItemPedido)
+  + fechar()
+}
+
+class ItemPedido {
+  - id: Long
+  - quantidade: Integer
+  - precoUnitario: BigDecimal
+  + calcularSubtotal(): BigDecimal
+}
+
+class Produto {
+  - id: Long
+  - nome: String
+  - codigo: String
+  - preco: BigDecimal
+  - estoque: Integer
+}
+
+class Servico {
+  - id: Long
+  - tipo: String
+  - preco: BigDecimal
+  - descricao: String
+}
+
+class Pagamento {
+  - id: Long
+  - valor: BigDecimal
+  - data: LocalDateTime
+  - forma: String
+}
+
+Pessoa <|-- Cliente
+Pessoa <|-- Funcionario
+
+Cliente "1" -- "0..*" Pedido : realiza
+Funcionario "1" -- "0..*" Pedido : registra
+
+Pedido "1" *-- "0..*" ItemPedido : contém
+ItemPedido "0..*" --> "0..1" Produto : produto
+ItemPedido "0..*" --> "0..1" Servico : serviço
+
+Pedido "1" -- "0..*" Pagamento : recebe
+
+note right of ItemPedido
+  Cada item deve estar associado
+  a exatamente um produto ou serviço,
+  nunca aos dois simultaneamente.
+end note
+
+@enduml
