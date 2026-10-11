@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque | DigitalVX</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">D</span>
+            <span>Digital<span class="brand-accent">VX</span><small>GESTÃO COMERCIAL</small></span>
+        </a>
+        <p class="nav-heading">MENU PRINCIPAL</p>
+        <nav class="main-nav" aria-label="Menu principal">
+            <a class="nav-link" th:href="@{/}"><span class="nav-icon">▦</span>Visão geral</a>
+            <a class="nav-link" th:href="@{/clientes}"><span class="nav-icon">♙</span>Clientes</a>
+            <a class="nav-link" th:href="@{/funcionarios}"><span class="nav-icon">♙</span>Funcionários</a>
+            <a class="nav-link" th:href="@{/produtos}"><span class="nav-icon">▧</span>Produtos</a>
+            <a class="nav-link active" th:href="@{/estoque}" aria-current="page"><span class="nav-icon">▤</span>Estoque</a>
+            <a class="nav-link" th:href="@{/servicos}"><span class="nav-icon">◇</span>Serviços</a>
+            <a class="nav-link" th:href="@{/pedidos}"><span class="nav-icon">▤</span>Pedidos e vendas</a>
+            <a class="nav-link disabled" href="#" aria-disabled="true"><span class="nav-icon">◇</span>Pagamentos</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            <span>Sistema operacional<small>DigitalVX PDV</small></span>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">GESTÃO DE PRODUTOS</p>
+                <h1>Controle de estoque</h1>
+            </div>
+            <a class="button button-primary" th:href="@{/produtos}">Ver produtos</a>
+        </header>
+
+        <div class="page-intro">
+            <div>
+                <h2>Produtos físicos</h2>
+                <p>Acompanhe as quantidades disponíveis dos produtos físicos.</p>
+            </div>
+            <span class="count-badge"><strong th:text="${totalProdutos}">0</strong> cadastrados</span>
+        </div>
+
+        <section class="stats-grid stock-stats-grid" aria-label="Indicadores de estoque">
+            <article class="stat-card">
+                <span class="stat-icon blue">▧</span>
+                <p>Produtos cadastrados</p>
+                <strong th:text="${totalProdutos}">0</strong>
+                <small>Itens registrados no sistema</small>
+            </article>
+            <article class="stat-card">
+                <span class="stat-icon orange">▤</span>
+                <p>Estoque baixo</p>
+                <strong th:text="${estoqueBaixo}">0</strong>
+                <small>5 unidades ou menos</small>
+            </article>
+            <article class="stat-card">
+                <span class="stat-icon violet">!</span>
+                <p>Sem estoque</p>
+                <strong th:text="${semEstoque}">0</strong>
+                <small>Produtos indisponíveis</small>
+            </article>
+        </section>
+
+        <section class="content-card table-card">
+            <div class="card-heading stock-table-heading">
+                <div>
+                    <span class="card-heading-icon blue">☷</span>
+                    <div>
+                        <h2>Lista de produtos</h2>
+                        <p>Consulte o saldo atual de cada produto.</p>
+                    </div>
+                </div>
+                <label class="stock-search">
+                    <span class="visually-hidden">Buscar produtos</span>
+                    <input id="busca" type="search" placeholder="Buscar por nome ou código..." aria-label="Buscar produtos">
+                </label>
+            </div>
+            <div class="table-wrap">
+                <table id="tabelaEstoque">
+                    <thead>
+                    <tr>
+                        <th>PRODUTO</th>
+                        <th>CÓDIGO</th>
+                        <th>PREÇO</th>
+                        <th>QUANTIDADE</th>
+                        <th>SITUAÇÃO</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="produto : ${produtos}" data-produto="true">
+                        <td><span class="table-avatar" th:text="${#strings.substring(produto.nome, 0, 1).toUpperCase()}">P</span><strong class="product-name" th:text="${produto.nome}">Produto</strong></td>
+                        <td th:text="${produto.codigo}">COD-001</td>
+                        <td th:text="|R$ ${#numbers.formatDecimal(produto.preco, 1, 2)}|">R$ 0,00</td>
+                        <td th:text="${produto.estoque != null ? produto.estoque : 0}">0</td>
+                        <td>
+                            <span class="stock-status"
+                                  th:classappend="${produto.estoque == null or produto.estoque <= 0}
+                                      ? ' stock-status-danger'
+                                      : (${produto.estoque <= 5}
+                                          ? ' stock-status-warning' : ' stock-status-ok')"
+                                  th:text="${produto.estoque == null or produto.estoque <= 0}
+                                      ? 'Sem estoque'
+                                      : (${produto.estoque <= 5}
+                                          ? 'Estoque baixo' : 'Disponível')">Disponível</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(produtos)}">
+                        <td class="empty-state" colspan="5">
+                            <strong>Nenhum produto cadastrado ainda</strong>
+                            <span>Cadastre um produto para acompanhar o estoque.</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <footer class="page-footer">DigitalVX <span>·</span> Gestão simples para o seu negócio</footer>
+    </main>
+
+    <script>
+        const busca = document.getElementById("busca");
+
+        busca.addEventListener("input", function () {
+            const termo = this.value.toLocaleLowerCase("pt-BR");
+            document.querySelectorAll("#tabelaEstoque tbody tr[data-produto]")
+                .forEach((linha) => {
+                    linha.hidden = !linha.textContent.toLocaleLowerCase("pt-BR").includes(termo);
+                });
+        });
+    </script>
+</body>
+</html>

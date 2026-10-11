@@ -1,4 +1,4 @@
-package com.example.demo.controller;
+package com.example.demo.dto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,7 @@ public class PedidoForm {
     private String numero;
     private Long clienteId;
     private Long responsavelId;
-    private List<ItemForm> itens = new ArrayList<>();
+    private List<ItemPedidoForm> itens = new ArrayList<>();
 
     public String getNumero() {
         return numero;
@@ -34,15 +34,15 @@ public class PedidoForm {
         this.responsavelId = responsavelId;
     }
 
-    public List<ItemForm> getItens() {
+    public List<ItemPedidoForm> getItens() {
         return itens;
     }
 
-    public void setItens(List<ItemForm> itens) {
+    public void setItens(List<ItemPedidoForm> itens) {
         this.itens = itens;
     }
 
-    public static class ItemForm {
+    public static class ItemPedidoForm {
 
         private String tipo;
         private Long referenciaId;

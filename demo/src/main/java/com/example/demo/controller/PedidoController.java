@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.ItemPedido;
 import com.example.demo.entity.Pedido;
+import com.example.demo.dto.PedidoForm;
 import com.example.demo.repository.ClienteRepository;
 import com.example.demo.repository.FuncionarioRepository;
 import com.example.demo.repository.PedidoRepository;
@@ -9,6 +10,7 @@ import com.example.demo.repository.ProdutoRepository;
 import com.example.demo.repository.ServicoRepository;
 import com.example.demo.service.PedidoService;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -71,7 +73,7 @@ public class PedidoController {
             pedido.setStatus("ABERTO");
 
             if (pedidoForm.getItens() != null) {
-                for (PedidoForm.ItemForm itemForm : pedidoForm.getItens()) {
+                for (PedidoForm.ItemPedidoForm itemForm : pedidoForm.getItens()) {
                     if (itemForm == null) {
                         throw new IllegalArgumentException("Os dados do item são inválidos.");
                     }
@@ -155,11 +157,24 @@ public class PedidoController {
     }
 
     private void prepararModelo(Model model, PedidoForm pedidoForm) {
+        List<Pedido> pedidos = pedidoRepository.findAll();
         model.addAttribute("pedidoForm", pedidoForm);
-        model.addAttribute("pedidos", pedidoRepository.findAll());
+        model.addAttribute("pedidos", pedidos);
+        model.addAttribute("totalPedidos", pedidos.size());
+        model.addAttribute("pedidosAbertos", contarStatus(pedidos, "ABERTO"));
+        model.addAttribute("pedidosEmProducao", contarStatus(pedidos, "EM PRODUÇÃO"));
+        model.addAttribute("pedidosProntos", contarStatus(pedidos, "PRONTO"));
+        model.addAttribute("pedidosEntregues", contarStatus(pedidos, "ENTREGUE"));
         model.addAttribute("clientes", clienteRepository.findAll());
         model.addAttribute("funcionarios", funcionarioRepository.findAll());
         model.addAttribute("produtos", produtoRepository.findAll());
         model.addAttribute("servicos", servicoRepository.findAll());
+    }
+
+    private long contarStatus(List<Pedido> pedidos, String status) {
+        return pedidos.stream()
+                .filter(pedido -> pedido.getStatus() != null
+                        && pedido.getStatus().equalsIgnoreCase(status))
+                .count();
     }
 }
