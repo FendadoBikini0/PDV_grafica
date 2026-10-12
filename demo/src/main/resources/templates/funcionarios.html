@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,6 +22,13 @@
             <a class="nav-link" th:href="@{/estoque}"><span class="nav-icon">▤</span>Estoque</a>
             <a class="nav-link" th:href="@{/servicos}"><span class="nav-icon">◇</span>Serviços</a>
             <a class="nav-link" th:href="@{/pedidos}"><span class="nav-icon">▤</span>Pedidos e vendas</a>
+            <a class="nav-link" th:href="@{/usuarios}" sec:authorize="hasRole('ADMINISTRADOR')">
+                <span class="nav-icon">♙</span>Usuários
+            </a>
+            <a class="nav-link" href="#" sec:authorize="!hasRole('ADMINISTRADOR')"
+               onclick="alert('Você não tem permissão para acessar essa aba.'); return false;">
+                <span class="nav-icon">♙</span>Usuários
+            </a>
             <a class="nav-link disabled" href="#" aria-disabled="true"><span class="nav-icon">◇</span>Pagamentos</a>
         </nav>
         <div class="sidebar-bottom">

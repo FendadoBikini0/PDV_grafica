@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários | DigitalVX</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">D</span>
+            <span>Digital<span class="brand-accent">VX</span><small>GESTÃO COMERCIAL</small></span>
+        </a>
+        <p class="nav-heading">MENU PRINCIPAL</p>
+        <nav class="main-nav" aria-label="Menu principal">
+            <a class="nav-link" th:href="@{/}"><span class="nav-icon">▦</span>Visão geral</a>
+            <a class="nav-link" th:href="@{/clientes}"><span class="nav-icon">♙</span>Clientes</a>
+            <a class="nav-link" th:href="@{/funcionarios}"><span class="nav-icon">♙</span>Funcionários</a>
+            <a class="nav-link" th:href="@{/produtos}"><span class="nav-icon">▧</span>Produtos</a>
+            <a class="nav-link" th:href="@{/estoque}"><span class="nav-icon">▤</span>Estoque</a>
+            <a class="nav-link" th:href="@{/servicos}"><span class="nav-icon">◇</span>Serviços</a>
+            <a class="nav-link" th:href="@{/pedidos}"><span class="nav-icon">▤</span>Pedidos e vendas</a>
+            <a class="nav-link active" th:href="@{/usuarios}" aria-current="page"
+               sec:authorize="hasRole('ADMINISTRADOR')">
+                <span class="nav-icon">♙</span>Usuários
+            </a>
+            <a class="nav-link" href="#" sec:authorize="!hasRole('ADMINISTRADOR')"
+               onclick="alert('Você não tem permissão para acessar essa aba.'); return false;">
+                <span class="nav-icon">♙</span>Usuários
+            </a>
+            <a class="nav-link disabled" href="#" aria-disabled="true"><span class="nav-icon">◇</span>Pagamentos</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            <span>Sistema operacional<small>DigitalVX PDV</small></span>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">GESTÃO DE ACESSO</p>
+                <h1>Usuários</h1>
+            </div>
+        </header>
+
+        <div class="page-intro">
+            <div>
+                <h2>Contas de acesso</h2>
+                <p>Gerencie as contas de acesso ao DigitalVX.</p>
+            </div>
+            <span class="count-badge"><strong th:text="${#lists.size(usuarios)}">0</strong> cadastrados</span>
+        </div>
+
+        <div class="alert alert-error" role="alert" th:if="${erro}" th:text="${erro}"></div>
+        <div class="alert alert-success" role="status" th:if="${sucesso}" th:text="${sucesso}"></div>
+
+        <section class="content-card form-card">
+            <div class="card-heading">
+                <div>
+                    <span class="card-heading-icon violet">♙</span>
+                    <div>
+                        <h2>Cadastrar usuário</h2>
+                        <p>Informe os dados da nova conta de acesso.</p>
+                    </div>
+                </div>
+            </div>
+
+            <form th:action="@{/usuarios/salvar}" th:object="${usuarioForm}" method="post">
+                <div class="form-grid usuario-form-grid">
+                    <label class="form-field" for="login">
+                        Login
+                        <input id="login" type="text" th:field="*{login}" maxlength="60" required>
+                    </label>
+
+                    <label class="form-field" for="senha">
+                        Senha
+                        <input id="senha" type="password" th:field="*{senha}" minlength="8"
+                               autocomplete="new-password" required>
+                        <small>Mínimo de 8 caracteres.</small>
+                    </label>
+
+                    <label class="form-field" for="funcionarioId">
+                        Funcionário
+                        <select id="funcionarioId" th:field="*{funcionarioId}" required>
+                            <option value="">Selecione um funcionário</option>
+                            <option th:each="funcionario : ${funcionarios}"
+                                    th:value="${funcionario.id}"
+                                    th:text="${funcionario.nome + ' — ' + funcionario.email}"></option>
+                        </select>
+                    </label>
+
+                    <label class="form-field" for="perfil">
+                        Perfil de acesso
+                        <select id="perfil" th:field="*{perfil}" required>
+                            <option value="">Selecione um perfil</option>
+                            <option th:each="perfil : ${perfis}"
+                                    th:value="${perfil}"
+                                    th:text="${perfil}"></option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="button button-primary">Cadastrar usuário</button>
+                </div>
+            </form>
+
+            <p th:if="${#lists.isEmpty(funcionarios)}" class="notice">
+                Não existem funcionários cadastrados. Cadastre um funcionário antes de criar uma conta de acesso.
+            </p>
+        </section>
+
+        <section class="content-card table-card">
+            <div class="card-heading">
+                <div>
+                    <span class="card-heading-icon blue">▤</span>
+                    <div>
+                        <h2>Usuários cadastrados</h2>
+                        <p>Contas e respectivos perfis de acesso.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>LOGIN</th>
+                        <th>FUNCIONÁRIO</th>
+                        <th>E-MAIL</th>
+                        <th>PERFIL</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="usuario : ${usuarios}">
+                        <td th:text="${usuario.login}"></td>
+                        <td th:text="${usuario.funcionario.nome}"></td>
+                        <td th:text="${usuario.funcionario.email}"></td>
+                        <td th:text="${usuario.perfil}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(usuarios)}">
+                        <td class="empty-state" colspan="4">Nenhum usuário cadastrado.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
