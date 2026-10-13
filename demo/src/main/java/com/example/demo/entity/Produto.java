@@ -38,6 +38,9 @@ public class Produto {
 	@Column(nullable = false)
 	private Integer estoque;
 
+	@Column(nullable = false, columnDefinition = "boolean default true")
+	private boolean ativo = true;
+
 	@OneToMany(mappedBy = "produto")
 	private List<ItemPedido> itensPedido = new ArrayList<>();
 

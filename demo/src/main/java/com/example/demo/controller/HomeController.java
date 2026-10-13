@@ -24,7 +24,7 @@ public class HomeController {
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("totalClientes", clienteRepository.count());
-        model.addAttribute("totalProdutos", produtoRepository.count());
+        model.addAttribute("totalProdutos", produtoRepository.countByAtivoTrue());
         model.addAttribute("totalServicos", servicoRepository.count());
         return "index";
     }

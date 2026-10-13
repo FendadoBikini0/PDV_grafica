@@ -53,6 +53,7 @@
             <span class="count-badge"><strong th:text="${#lists.size(funcionarios)}">0</strong> cadastrados</span>
         </div>
 
+        <div class="alert alert-success" role="status" th:if="${sucesso}" th:text="${sucesso}"></div>
         <div class="alert alert-error" role="alert" th:if="${erro}" th:text="${erro}"></div>
 
         <section class="content-card form-card">
@@ -130,6 +131,14 @@
                         <td class="actions-column">
                             <a class="table-action" th:href="@{/funcionarios(editar=${f.id})}"
                                th:aria-label="|Editar ${f.nome}|">Editar</a>
+                            <form th:action="@{/funcionarios/excluir}"
+                                  method="post"
+                                  style="display: inline;"
+                                  onsubmit="return confirm('Tem certeza de que deseja excluir este funcionário?');">
+                                <input type="hidden" name="id" th:value="${f.id}">
+                                <button type="submit" class="table-action table-action-delete"
+                                        th:aria-label="|Excluir ${f.nome}|">Excluir</button>
+                            </form>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(funcionarios)}">

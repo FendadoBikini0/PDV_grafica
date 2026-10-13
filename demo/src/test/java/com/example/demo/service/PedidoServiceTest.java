@@ -128,6 +128,32 @@ class PedidoServiceTest {
     }
 
     @Test
+    void deveRejeitarProdutoDesativadoEmNovoPedido() {
+        when(pedidoRepository.existsByNumero("PED-004"))
+                .thenReturn(false);
+
+        Produto produto = new Produto();
+        produto.setNome("Produto desativado");
+        produto.setAtivo(false);
+
+        Pedido pedido = new Pedido();
+        pedido.setNumero("PED-004");
+        pedido.setCliente(new Cliente());
+        pedido.setResponsavel(new Funcionario());
+        pedido.adicionarItem(criarItemProduto(produto, 1));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> pedidoService.criarPedido(pedido)
+        );
+
+        assertEquals(
+                "O produto Produto desativado está desativado e não pode ser incluído em novos pedidos.",
+                exception.getMessage());
+        verify(pedidoRepository, never()).save(any(Pedido.class));
+    }
+
+    @Test
     void deveBaixarEstoqueAoEntregarPedidoEIgnorarServicos() {
         Produto produto = criarProduto(1L, "Produto A", 5);
         Pedido pedido = criarPedidoPronto(10L);

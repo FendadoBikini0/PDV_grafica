@@ -18,7 +18,7 @@ public class EstoqueController {
 
     @GetMapping
     public String listar(Model model) {
-        var produtos = produtoRepository.findAll();
+        var produtos = produtoRepository.findByAtivoTrue();
 
         model.addAttribute("produtos", produtos);
         model.addAttribute("totalProdutos", produtos.size());

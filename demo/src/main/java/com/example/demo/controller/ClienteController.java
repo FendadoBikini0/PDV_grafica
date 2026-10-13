@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Cliente;
 import com.example.demo.repository.ClienteRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class ClienteController {
@@ -47,6 +49,30 @@ public class ClienteController {
             cliente.setNumero(cliente.getNumero().trim());
         }
         clienteRepository.save(cliente);
+        return "redirect:/clientes";
+    }
+
+    @PostMapping("/clientes/excluir")
+    public String excluir(
+            @RequestParam Long id,
+            RedirectAttributes redirectAttributes) {
+
+        if (!clienteRepository.existsById(id)) {
+            redirectAttributes.addFlashAttribute(
+                    "erro", "Cliente não encontrado.");
+            return "redirect:/clientes";
+        }
+
+        try {
+            clienteRepository.deleteById(id);
+            redirectAttributes.addFlashAttribute(
+                    "sucesso", "Cliente excluído com sucesso.");
+        } catch (DataIntegrityViolationException e) {
+            redirectAttributes.addFlashAttribute(
+                    "erro", "Não foi possível excluir este cliente, "
+                            + "pois existem registros vinculados a ele.");
+        }
+
         return "redirect:/clientes";
     }
 }

@@ -61,6 +61,13 @@ public class PedidoService {
                 );
             }
 
+            if (item.getProduto() != null && !item.getProduto().isAtivo()) {
+                throw new IllegalArgumentException(
+                    "O produto " + item.getProduto().getNome()
+                            + " está desativado e não pode ser incluído em novos pedidos."
+                );
+            }
+
             if (item.getQuantidade() == null || item.getQuantidade() <= 0) {
                 throw new IllegalArgumentException("A quantidade deve ser maior que zero.");
             }

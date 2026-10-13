@@ -167,7 +167,7 @@ public class PedidoController {
         model.addAttribute("pedidosEntregues", contarStatus(pedidos, "ENTREGUE"));
         model.addAttribute("clientes", clienteRepository.findAll());
         model.addAttribute("funcionarios", funcionarioRepository.findAll());
-        model.addAttribute("produtos", produtoRepository.findAll());
+        model.addAttribute("produtos", produtoRepository.findByAtivoTrue());
         model.addAttribute("servicos", servicoRepository.findAll());
     }
 

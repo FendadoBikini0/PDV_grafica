@@ -51,6 +51,7 @@
             <span class="count-badge"><strong th:text="${#lists.size(produtos)}">0</strong> cadastrados</span>
         </div>
 
+        <div class="alert alert-success" role="status" th:if="${sucesso}" th:text="${sucesso}"></div>
         <div class="alert alert-error" role="alert" th:if="${erro}" th:text="${erro}"></div>
 
         <section class="content-card form-card">
@@ -97,7 +98,16 @@
                             <td th:text="${item.codigo}">COD-001</td>
                             <td th:text="|R$ ${item.preco}|">R$ 0,00</td>
                             <td th:text="${item.estoque}">0</td>
-                            <td class="actions-column"><a class="table-action" th:href="@{/produtos(editar=${item.id})}" th:aria-label="|Editar ${item.nome}|">Editar</a></td>
+                            <td class="actions-column">
+                                <a class="table-action" th:href="@{/produtos(editar=${item.id})}" th:aria-label="|Editar ${item.nome}|">Editar</a>
+                                <form th:action="@{/produtos/desativar}" method="post"
+                                      style="display: inline;"
+                                      onsubmit="return confirm('Tem certeza de que deseja desativar este produto?');">
+                                    <input type="hidden" name="id" th:value="${item.id}">
+                                    <button type="submit" class="table-action table-action-delete"
+                                            th:aria-label="|Desativar ${item.nome}|">Desativar</button>
+                                </form>
+                            </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(produtos)}">
                             <td class="empty-state" colspan="5"><strong>Nenhum produto cadastrado ainda</strong><span>Use o formulário acima para adicionar seu primeiro produto.</span></td>

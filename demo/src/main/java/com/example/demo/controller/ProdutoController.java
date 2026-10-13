@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Produto;
+import com.example.demo.repository.ItemPedidoRepository;
 import com.example.demo.repository.ProdutoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -10,14 +11,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class ProdutoController {
 
     private final ProdutoRepository produtoRepository;
+    private final ItemPedidoRepository itemPedidoRepository;
 
-    public ProdutoController(ProdutoRepository produtoRepository) {
+    public ProdutoController(
+            ProdutoRepository produtoRepository,
+            ItemPedidoRepository itemPedidoRepository) {
         this.produtoRepository = produtoRepository;
+        this.itemPedidoRepository = itemPedidoRepository;
     }
 
     @GetMapping("/produtos")
@@ -27,23 +33,72 @@ public class ProdutoController {
                 : produtoRepository.findById(editar)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado"));
 
-        model.addAttribute("produtos", produtoRepository.findAll());
+        if (!produto.isAtivo()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produto não encontrado");
+        }
+
+        model.addAttribute("produtos", produtoRepository.findByAtivoTrue());
         model.addAttribute("produto", produto);
         return "produtos";
     }
 
     @PostMapping("/produtos/salvar")
     public String salvar(@ModelAttribute("produto") Produto produto, Model model) {
+        Produto produtoExistente = null;
+        if (produto.getId() != null) {
+            produtoExistente = produtoRepository.findById(produto.getId())
+                    .filter(Produto::isAtivo)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND, "Produto não encontrado"));
+        }
+
         String erro = validar(produto);
         if (erro != null) {
-            model.addAttribute("produtos", produtoRepository.findAll());
+            model.addAttribute("produtos", produtoRepository.findByAtivoTrue());
             model.addAttribute("erro", erro);
             return "produtos";
         }
 
-        produto.setNome(produto.getNome().trim());
-        produto.setCodigo(produto.getCodigo().trim());
+        Produto produtoParaSalvar = produtoExistente == null
+                ? produto
+                : produtoExistente;
+        produtoParaSalvar.setNome(produto.getNome().trim());
+        produtoParaSalvar.setCodigo(produto.getCodigo().trim());
+        produtoParaSalvar.setPreco(produto.getPreco());
+        produtoParaSalvar.setEstoque(produto.getEstoque());
+        produtoRepository.save(produtoParaSalvar);
+        return "redirect:/produtos";
+    }
+
+    @PostMapping("/produtos/desativar")
+    public String desativar(
+            @RequestParam Long id,
+            RedirectAttributes redirectAttributes) {
+
+        Produto produto = produtoRepository.findById(id).orElse(null);
+        if (produto == null) {
+            redirectAttributes.addFlashAttribute(
+                    "erro", "Produto não encontrado.");
+            return "redirect:/produtos";
+        }
+
+        if (!produto.isAtivo()) {
+            redirectAttributes.addFlashAttribute(
+                    "erro", "Este produto já está desativado.");
+            return "redirect:/produtos";
+        }
+
+        if (itemPedidoRepository.existeEmPedidoNaoEntregue(id)) {
+            redirectAttributes.addFlashAttribute(
+                    "erro", "Não é possível desativar este produto, "
+                            + "pois ele está vinculado a um pedido que ainda não foi entregue.");
+            return "redirect:/produtos";
+        }
+
+        produto.setAtivo(false);
         produtoRepository.save(produto);
+        redirectAttributes.addFlashAttribute(
+                "sucesso", "Produto desativado com sucesso.");
         return "redirect:/produtos";
     }
 

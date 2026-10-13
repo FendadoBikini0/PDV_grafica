@@ -51,6 +51,7 @@
             <span class="count-badge"><strong th:text="${#lists.size(clientes)}">0</strong> cadastrados</span>
         </div>
 
+        <div class="alert alert-success" role="status" th:if="${sucesso}" th:text="${sucesso}"></div>
         <div class="alert alert-error" role="alert" th:if="${erro}" th:text="${erro}"></div>
 
         <section class="content-card form-card">
@@ -86,13 +87,22 @@
             </div>
             <div class="table-wrap">
                 <table>
-                    <thead><tr><th>CLIENTE</th><th>E-MAIL</th><th>TELEFONE</th><th class="actions-column">AÇÕES</th></tr></thead>
+                    <thead><tr><th>CLIENTE</th><th>E-MAIL</th><th>TELEFONE</th><th class="actions-column client-actions-column">AÇÕES</th></tr></thead>
                     <tbody>
                         <tr th:each="item : ${clientes}">
                             <td><span class="table-avatar" th:text="${#strings.substring(item.nome, 0, 1).toUpperCase()}">C</span><strong th:text="${item.nome}">Nome do cliente</strong></td>
                             <td th:text="${item.email}">cliente@email.com</td>
                             <td th:text="${#strings.isEmpty(item.numero) ? '—' : item.numero}">—</td>
-                            <td class="actions-column"><a class="table-action" th:href="@{/clientes(editar=${item.id})}" th:aria-label="|Editar ${item.nome}|">Editar</a></td>
+                            <td class="actions-column client-actions-column">
+                                <a class="table-action" th:href="@{/clientes(editar=${item.id})}" th:aria-label="|Editar ${item.nome}|">Editar</a>
+                                <form th:action="@{/clientes/excluir}" method="post"
+                                      style="display: inline;"
+                                      onsubmit="return confirm('Tem certeza de que deseja excluir este cliente?');">
+                                    <input type="hidden" name="id" th:value="${item.id}">
+                                    <button type="submit" class="table-action table-action-delete"
+                                            th:aria-label="|Excluir ${item.nome}|">Excluir</button>
+                                </form>
+                            </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(clientes)}">
                             <td class="empty-state" colspan="4"><strong>Nenhum cliente cadastrado ainda</strong><span>Use o formulário acima para adicionar seu primeiro cliente.</span></td>
