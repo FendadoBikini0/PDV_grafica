@@ -29,7 +29,7 @@ public class Produto {
 	@Column(nullable = false)
 	private String nome;
 
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false)
 	private String codigo;
 
 	@Column(nullable = false, precision = 12, scale = 2)

@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
-    boolean existsByCodigo(String codigo);
+    boolean existsByCodigoAndAtivoTrue(String codigo);
 
-    boolean existsByCodigoAndIdNot(String codigo, Long id);
+    boolean existsByCodigoAndAtivoTrueAndIdNot(String codigo, Long id);
 
     List<Produto> findByAtivoTrue();
 

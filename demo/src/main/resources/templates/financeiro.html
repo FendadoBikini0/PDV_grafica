@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro | DigitalVX</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="app-shell">
+    <aside class="sidebar">
+        <a class="brand" th:href="@{/}">
+            <span class="brand-mark">D</span>
+            <span>Digital<span class="brand-accent">VX</span><small>GESTÃO COMERCIAL</small></span>
+        </a>
+        <p class="nav-heading">MENU PRINCIPAL</p>
+        <nav class="main-nav" aria-label="Menu principal">
+            <a class="nav-link" th:href="@{/}"><span class="nav-icon">▦</span>Visão geral</a>
+            <a class="nav-link" th:href="@{/clientes}"><span class="nav-icon">♙</span>Clientes</a>
+            <a class="nav-link" th:href="@{/funcionarios}"><span class="nav-icon">♙</span>Funcionários</a>
+            <a class="nav-link" th:href="@{/produtos}"><span class="nav-icon">▧</span>Produtos</a>
+            <a class="nav-link" th:href="@{/estoque}"><span class="nav-icon">▤</span>Estoque</a>
+            <a class="nav-link" th:href="@{/servicos}"><span class="nav-icon">◇</span>Serviços</a>
+            <a class="nav-link" th:href="@{/pedidos}"><span class="nav-icon">▤</span>Pedidos e vendas</a>
+            <a class="nav-link" th:href="@{/usuarios}" sec:authorize="hasRole('ADMINISTRADOR')">
+                <span class="nav-icon">♙</span>Usuários
+            </a>
+            <a class="nav-link" href="#" sec:authorize="!hasRole('ADMINISTRADOR')"
+               onclick="alert('Você não tem permissão para acessar essa aba.'); return false;">
+                <span class="nav-icon">♙</span>Usuários
+            </a>
+            <a class="nav-link active" th:href="@{/financeiro}" aria-current="page">
+                <span class="nav-icon">◇</span>Financeiro
+            </a>
+        </nav>
+        <div class="sidebar-bottom">
+            <span class="status-dot"></span>
+            <span>Sistema operacional<small>DigitalVX PDV</small></span>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">CONTROLE FINANCEIRO</p>
+                <h1>Financeiro</h1>
+            </div>
+        </header>
+
+        <div class="page-intro">
+            <div>
+                <h2>Visão financeira</h2>
+                <p>Acompanhe o dinheiro que entrou e saiu do negócio.</p>
+            </div>
+        </div>
+
+        <div class="alert alert-error" role="alert" th:if="${erro}" th:text="${erro}"></div>
+        <div class="alert alert-success" role="status" th:if="${sucesso}" th:text="${sucesso}"></div>
+
+        <section class="stats-grid finance-stats-grid" aria-label="Resumo financeiro">
+            <article class="stat-card">
+                <span class="stat-icon blue">↑</span>
+                <p>Total de entradas</p>
+                <strong th:text="|R$ ${#numbers.formatDecimal(totalEntradas, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+                <small>Valores recebidos</small>
+            </article>
+            <article class="stat-card">
+                <span class="stat-icon orange">↓</span>
+                <p>Total de saídas</p>
+                <strong th:text="|R$ ${#numbers.formatDecimal(totalSaidas, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+                <small>Valores pagos</small>
+            </article>
+            <article class="stat-card">
+                <span class="stat-icon violet">◇</span>
+                <p>Saldo atual</p>
+                <strong th:text="|R$ ${#numbers.formatDecimal(saldoAtual, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+                <small>Lucro</small>
+            </article>
+        </section>
+
+        <section class="content-card form-card finance-form-card">
+            <div class="card-heading">
+                <div>
+                    <span class="card-heading-icon violet">＋</span>
+                    <div>
+                        <h2>Nova movimentação manual</h2>
+                        <p>Registre uma entrada ou saída financeira.</p>
+                    </div>
+                </div>
+            </div>
+            <form th:action="@{/financeiro/salvar}" th:object="${movimentacao}" method="post">
+                <div class="form-grid finance-form-grid">
+                    <label class="form-field">
+                        Descrição <b>*</b>
+                        <input type="text" th:field="*{descricao}" maxlength="150"
+                               placeholder="Ex.: Pagamento de conta" required>
+                    </label>
+                    <label class="form-field">
+                        Categoria <b>*</b>
+                        <input type="text" th:field="*{categoria}" maxlength="80"
+                               placeholder="Ex.: Contas fixas" required>
+                    </label>
+                    <label class="form-field">
+                        Tipo <b>*</b>
+                        <select th:field="*{tipo}" required>
+                            <option value="" disabled>Selecione</option>
+                            <option value="ENTRADA">Entrada</option>
+                            <option value="SAIDA">Saída</option>
+                        </select>
+                    </label>
+                    <label class="form-field">
+                        Valor (R$) <b>*</b>
+                        <input type="number" th:field="*{valor}" min="0.01" step="0.01"
+                               placeholder="0,00" required>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">Registrar movimentação</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="content-card table-card finance-table-card">
+            <div class="card-heading">
+                <div>
+                    <span class="card-heading-icon blue">☷</span>
+                    <div>
+                        <h2>Histórico de movimentações</h2>
+                        <p>Entradas e saídas registradas no sistema.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>DATA</th>
+                        <th>DESCRIÇÃO</th>
+                        <th>CATEGORIA</th>
+                        <th>TIPO</th>
+                        <th class="finance-value">VALOR</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${movimentacoes}">
+                        <td th:text="${#temporals.format(item.data, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+                        <td th:text="${item.descricao}">Descrição</td>
+                        <td th:text="${item.categoria}">Categoria</td>
+                        <td>
+                            <span class="finance-type"
+                                  th:classappend="${item.tipo.name() == 'ENTRADA'} ? ' finance-type-entry' : ' finance-type-exit'"
+                                  th:text="${item.tipo.name() == 'ENTRADA'} ? 'Entrada' : 'Saída'">Entrada</span>
+                        </td>
+                        <td class="finance-value"
+                            th:text="|R$ ${#numbers.formatDecimal(item.valor, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(movimentacoes)}">
+                        <td class="empty-state" colspan="5">
+                            <strong>Nenhuma movimentação registrada ainda</strong>
+                            <span>Cadastre uma movimentação manual para começar o histórico.</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        <footer class="page-footer">DigitalVX <span>·</span> Gestão simples para o seu negócio</footer>
+    </main>
+</body>
+</html>

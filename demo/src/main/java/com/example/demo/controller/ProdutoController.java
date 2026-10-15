@@ -117,8 +117,8 @@ public class ProdutoController {
 
         String codigo = produto.getCodigo().trim();
         boolean codigoEmUso = produto.getId() == null
-                ? produtoRepository.existsByCodigo(codigo)
-                : produtoRepository.existsByCodigoAndIdNot(codigo, produto.getId());
+                ? produtoRepository.existsByCodigoAndAtivoTrue(codigo)
+                : produtoRepository.existsByCodigoAndAtivoTrueAndIdNot(codigo, produto.getId());
         if (codigoEmUso) {
             return "Já existe um produto cadastrado com esse código.";
         }

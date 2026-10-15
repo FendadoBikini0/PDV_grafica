@@ -7,6 +7,7 @@ import com.example.demo.entity.Pedido;
 import com.example.demo.entity.Produto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,6 +52,24 @@ class ItemPedidoRepositoryTest {
         assertTrue(itemPedidoRepository.existeEmPedidoNaoEntregue(pedidoEmProducao.getId()));
         assertFalse(itemPedidoRepository.existeEmPedidoNaoEntregue(pedidoEntregue.getId()));
         assertFalse(itemPedidoRepository.existeEmPedidoNaoEntregue(semPedidos.getId()));
+    }
+
+    @Test
+    void permiteReutilizarCodigoDeProdutoDesativado() {
+        String codigo = "REUSO-" + UUID.randomUUID();
+        Produto produtoDesativado = salvarProduto(codigo);
+        produtoDesativado.setAtivo(false);
+        produtoRepository.saveAndFlush(produtoDesativado);
+
+        assertFalse(produtoRepository.existsByCodigoAndAtivoTrue(codigo));
+
+        Produto produtoAtivo = salvarProduto(codigo);
+
+        assertTrue(produtoRepository.existsByCodigoAndAtivoTrue(codigo));
+        assertFalse(produtoRepository.existsByCodigoAndAtivoTrueAndIdNot(
+                codigo, produtoAtivo.getId()));
+        assertTrue(produtoRepository.existsByCodigoAndAtivoTrueAndIdNot(
+                codigo, produtoDesativado.getId()));
     }
 
     private Produto salvarProduto(String codigo) {
