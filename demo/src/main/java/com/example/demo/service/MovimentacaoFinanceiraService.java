@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -72,6 +73,14 @@ public class MovimentacaoFinanceiraService {
 	}
 
 	@Transactional(readOnly = true)
+	public List<MovimentacaoFinanceira> listarRecentes() {
+		return repository.findAll(Sort.by(Sort.Direction.DESC, "data"))
+				.stream()
+				.limit(10)
+				.toList();
+	}
+
+	@Transactional(readOnly = true)
 	public BigDecimal totalEntradas() {
 		return repository.somarPorTipo(TipoMovimentacao.ENTRADA);
 	}
@@ -84,5 +93,49 @@ public class MovimentacaoFinanceiraService {
 	@Transactional(readOnly = true)
 	public BigDecimal saldoAtual() {
 		return totalEntradas().subtract(totalSaidas());
+	}
+
+	@Transactional(readOnly = true)
+	public List<MovimentacaoFinanceira> listarPorPeriodo(
+			LocalDate dataInicial,
+			LocalDate dataFinal) {
+		validarPeriodo(dataInicial, dataFinal);
+		LocalDateTime inicio = dataInicial.atStartOfDay();
+		LocalDateTime fimExclusivo = dataFinal.plusDays(1).atStartOfDay();
+		return repository.findByDataGreaterThanEqualAndDataLessThanOrderByDataDesc(
+				inicio, fimExclusivo);
+	}
+
+	@Transactional(readOnly = true)
+	public BigDecimal totalEntradasNoPeriodo(
+			LocalDate dataInicial,
+			LocalDate dataFinal) {
+		validarPeriodo(dataInicial, dataFinal);
+		return repository.somarPorTipoNoPeriodo(
+				TipoMovimentacao.ENTRADA,
+				dataInicial.atStartOfDay(),
+				dataFinal.plusDays(1).atStartOfDay());
+	}
+
+	@Transactional(readOnly = true)
+	public BigDecimal totalSaidasNoPeriodo(
+			LocalDate dataInicial,
+			LocalDate dataFinal) {
+		validarPeriodo(dataInicial, dataFinal);
+		return repository.somarPorTipoNoPeriodo(
+				TipoMovimentacao.SAIDA,
+				dataInicial.atStartOfDay(),
+				dataFinal.plusDays(1).atStartOfDay());
+	}
+
+	private void validarPeriodo(LocalDate dataInicial, LocalDate dataFinal) {
+		if (dataInicial == null || dataFinal == null) {
+			throw new IllegalArgumentException(
+					"Informe a data inicial e a data final.");
+		}
+		if (dataInicial.isAfter(dataFinal)) {
+			throw new IllegalArgumentException(
+					"A data inicial não pode ser posterior à data final.");
+		}
 	}
 }

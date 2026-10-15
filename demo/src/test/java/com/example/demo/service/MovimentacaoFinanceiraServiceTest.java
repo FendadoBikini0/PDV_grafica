@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -149,6 +151,78 @@ class MovimentacaoFinanceiraServiceTest {
 
 		assertSame(movimentacoes, service.listarTodas());
 
+		verify(repository).findAll(Sort.by(Sort.Direction.DESC, "data"));
+	}
+
+	@Test
+	void listaMovimentacoesDoPeriodoIncluindoTodoODiaFinal() {
+		LocalDate dataInicial = LocalDate.of(2026, 10, 1);
+		LocalDate dataFinal = LocalDate.of(2026, 10, 31);
+		List<MovimentacaoFinanceira> movimentacoes = List.of(criarMovimentacao());
+		LocalDateTime fimExclusivo = dataFinal.plusDays(1).atStartOfDay();
+		when(repository.findByDataGreaterThanEqualAndDataLessThanOrderByDataDesc(
+				dataInicial.atStartOfDay(), fimExclusivo))
+				.thenReturn(movimentacoes);
+
+		assertSame(movimentacoes, service.listarPorPeriodo(dataInicial, dataFinal));
+
+		verify(repository)
+				.findByDataGreaterThanEqualAndDataLessThanOrderByDataDesc(
+						dataInicial.atStartOfDay(), fimExclusivo);
+	}
+
+	@Test
+	void rejeitaPeriodoNuloOuComDataInicialPosterior() {
+		assertThrows(
+				IllegalArgumentException.class,
+				() -> service.listarPorPeriodo(null, LocalDate.now()));
+		assertThrows(
+				IllegalArgumentException.class,
+				() -> service.totalEntradasNoPeriodo(
+						LocalDate.of(2026, 10, 2), LocalDate.of(2026, 10, 1)));
+		assertThrows(
+				IllegalArgumentException.class,
+				() -> service.totalSaidasNoPeriodo(
+						LocalDate.of(2026, 10, 1), null));
+
+		verifyNoInteractions(repository);
+	}
+
+	@Test
+	void calculaTotaisDoPeriodoComLimiteFinalExclusivo() {
+		LocalDate dataInicial = LocalDate.of(2026, 10, 1);
+		LocalDate dataFinal = LocalDate.of(2026, 10, 31);
+		when(repository.somarPorTipoNoPeriodo(
+				TipoMovimentacao.ENTRADA,
+				dataInicial.atStartOfDay(),
+				dataFinal.plusDays(1).atStartOfDay()))
+				.thenReturn(new BigDecimal("90.00"));
+		when(repository.somarPorTipoNoPeriodo(
+				TipoMovimentacao.SAIDA,
+				dataInicial.atStartOfDay(),
+				dataFinal.plusDays(1).atStartOfDay()))
+				.thenReturn(new BigDecimal("30.00"));
+
+		assertEquals(
+				new BigDecimal("90.00"),
+				service.totalEntradasNoPeriodo(dataInicial, dataFinal));
+		assertEquals(
+				new BigDecimal("30.00"),
+				service.totalSaidasNoPeriodo(dataInicial, dataFinal));
+	}
+
+	@Test
+	void listaSomenteAsDezMovimentacoesMaisRecentesSemApagarAsDemais() {
+		List<MovimentacaoFinanceira> movimentacoes =
+				java.util.stream.IntStream.range(0, 12)
+						.mapToObj(indice -> criarMovimentacao())
+						.toList();
+		when(repository.findAll(any(Sort.class))).thenReturn(movimentacoes);
+
+		List<MovimentacaoFinanceira> recentes = service.listarRecentes();
+
+		assertEquals(10, recentes.size());
+		assertEquals(movimentacoes.subList(0, 10), recentes);
 		verify(repository).findAll(Sort.by(Sort.Direction.DESC, "data"));
 	}
 

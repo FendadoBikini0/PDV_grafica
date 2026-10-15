@@ -74,7 +74,7 @@
                 <span class="stat-icon violet">◇</span>
                 <p>Saldo atual</p>
                 <strong th:text="|R$ ${#numbers.formatDecimal(saldoAtual, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
-                <small>Lucro</small>
+                <small>Entradas menos saídas</small>
             </article>
         </section>
 
@@ -120,13 +120,119 @@
             </form>
         </section>
 
+        <div class="alert alert-error" role="alert"
+             th:if="${erroRelatorio}" th:text="${erroRelatorio}"></div>
+
+        <section class="content-card form-card">
+            <div class="card-heading">
+                <div>
+                    <span class="card-heading-icon blue">▤</span>
+                    <div>
+                        <h2>Relatório financeiro por período</h2>
+                        <p>Consulte as movimentações entre duas datas.</p>
+                    </div>
+                </div>
+            </div>
+            <form th:action="@{/financeiro}" method="get">
+                <div class="form-grid">
+                    <label class="form-field">
+                        Data inicial
+                        <input type="date" name="dataInicial"
+                               th:value="${dataInicial}" required>
+                    </label>
+                    <label class="form-field">
+                        Data final
+                        <input type="date" name="dataFinal"
+                               th:value="${dataFinal}" required>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button class="button button-primary" type="submit">
+                        Gerar relatório
+                    </button>
+                    <a class="button button-quiet" th:href="@{/financeiro}">
+                        Limpar filtro
+                    </a>
+                </div>
+            </form>
+        </section>
+
+        <section class="content-card table-card finance-table-card"
+                 th:if="${relatorioGerado}">
+            <div class="card-heading">
+                <div>
+                    <span class="card-heading-icon violet">◇</span>
+                    <div>
+                        <h2>Resultado do período</h2>
+                        <p>
+                            De
+                            <strong th:text="${#temporals.format(dataInicial, 'dd/MM/yyyy')}"></strong>
+                            até
+                            <strong th:text="${#temporals.format(dataFinal, 'dd/MM/yyyy')}"></strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <section class="stats-grid finance-stats-grid"
+                     aria-label="Totais do período">
+                <article class="stat-card">
+                    <span class="stat-icon blue">↑</span>
+                    <p>Entradas no período</p>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(entradasPeriodo, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-icon orange">↓</span>
+                    <p>Saídas no período</p>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(saidasPeriodo, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+                </article>
+                <article class="stat-card">
+                    <span class="stat-icon violet">◇</span>
+                    <p>Saldo do período</p>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(saldoPeriodo, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+                </article>
+            </section>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>DATA</th>
+                        <th>DESCRIÇÃO</th>
+                        <th>CATEGORIA</th>
+                        <th>TIPO</th>
+                        <th class="finance-value">VALOR</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${movimentacoesPeriodo}">
+                        <td th:text="${#temporals.format(item.data, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+                        <td th:text="${item.descricao}">Descrição</td>
+                        <td th:text="${item.categoria}">Categoria</td>
+                        <td>
+                            <span class="finance-type"
+                                  th:classappend="${item.tipo.name() == 'ENTRADA'} ? ' finance-type-entry' : ' finance-type-exit'"
+                                  th:text="${item.tipo.name() == 'ENTRADA'} ? 'Entrada' : 'Saída'">Entrada</span>
+                        </td>
+                        <td class="finance-value"
+                            th:text="|R$ ${#numbers.formatDecimal(item.valor, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(movimentacoesPeriodo)}">
+                        <td class="empty-state" colspan="5">
+                            <strong>Nenhuma movimentação neste período</strong>
+                            <span>Experimente selecionar outras datas.</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <section class="content-card table-card finance-table-card">
             <div class="card-heading">
                 <div>
                     <span class="card-heading-icon blue">☷</span>
                     <div>
-                        <h2>Histórico de movimentações</h2>
-                        <p>Entradas e saídas registradas no sistema.</p>
+                        <h2>Histórico recente</h2>
+                        <p>As 10 movimentações mais recentes. Os registros anteriores continuam salvos.</p>
                     </div>
                 </div>
             </div>

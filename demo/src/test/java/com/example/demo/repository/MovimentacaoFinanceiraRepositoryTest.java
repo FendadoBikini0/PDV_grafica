@@ -64,8 +64,94 @@ class MovimentacaoFinanceiraRepositoryTest {
 		);
 	}
 
+	@Test
+	void listaMovimentacoesNoIntervaloEmOrdemDecrescente() {
+		LocalDateTime inicio = LocalDateTime.of(2026, 10, 1, 0, 0);
+		LocalDateTime fim = LocalDateTime.of(2026, 10, 31, 23, 59, 59);
+		salvar(
+				TipoMovimentacao.ENTRADA, "3.00", "MANUAL", null,
+				inicio.minusSeconds(1));
+		MovimentacaoFinanceira dentroMaisAntiga = salvar(
+				TipoMovimentacao.ENTRADA, "10.00", "MANUAL", null,
+				inicio.plusDays(2));
+		MovimentacaoFinanceira dentroMaisRecente = salvar(
+				TipoMovimentacao.SAIDA, "4.00", "MANUAL", null,
+				fim.minusDays(2));
+		salvar(
+				TipoMovimentacao.SAIDA, "7.00", "MANUAL", null,
+				fim.plusSeconds(1));
+
+		assertEquals(
+				java.util.List.of(dentroMaisRecente.getId(), dentroMaisAntiga.getId()),
+				movimentacaoFinanceiraRepository
+						.findByDataBetweenOrderByDataDesc(inicio, fim).stream()
+						.map(MovimentacaoFinanceira::getId)
+						.toList());
+	}
+
+	@Test
+	void somaValoresPorTipoDentroDoIntervalo() {
+		LocalDateTime inicio = LocalDateTime.of(2026, 10, 1, 0, 0);
+		LocalDateTime fim = LocalDateTime.of(2026, 10, 31, 23, 59, 59);
+		salvar(
+				TipoMovimentacao.ENTRADA, "100.00", "MANUAL", null,
+				inicio.plusDays(1));
+		salvar(
+				TipoMovimentacao.ENTRADA, "25.50", "MANUAL", null,
+				fim.minusDays(1));
+		salvar(
+				TipoMovimentacao.SAIDA, "20.00", "MANUAL", null,
+				inicio.plusDays(1));
+		salvar(
+				TipoMovimentacao.ENTRADA, "500.00", "MANUAL", null,
+				fim.plusSeconds(1));
+
+		assertEquals(
+				new BigDecimal("125.50"),
+				movimentacaoFinanceiraRepository.somarPorTipoNoPeriodo(
+						TipoMovimentacao.ENTRADA, inicio, fim));
+		assertEquals(
+				new BigDecimal("20.00"),
+				movimentacaoFinanceiraRepository.somarPorTipoNoPeriodo(
+						TipoMovimentacao.SAIDA, inicio, fim));
+	}
+
+	@Test
+	void incluiUltimoDiaDoPeriodoMasExcluiMeiaNoiteDoDiaSeguinte() {
+		LocalDateTime inicio = LocalDateTime.of(2026, 10, 31, 0, 0);
+		LocalDateTime fimExclusivo = LocalDateTime.of(2026, 11, 1, 0, 0);
+		salvar(
+				TipoMovimentacao.ENTRADA, "12.00", "MANUAL", null,
+				fimExclusivo.minusSeconds(1));
+		salvar(
+				TipoMovimentacao.ENTRADA, "100.00", "MANUAL", null,
+				fimExclusivo);
+
+		assertEquals(
+				new BigDecimal("12.00"),
+				movimentacaoFinanceiraRepository.somarPorTipoNoPeriodo(
+						TipoMovimentacao.ENTRADA, inicio, fimExclusivo));
+		assertEquals(
+				1,
+				movimentacaoFinanceiraRepository
+						.findByDataGreaterThanEqualAndDataLessThanOrderByDataDesc(
+								inicio, fimExclusivo)
+						.size());
+	}
+
 	private void salvar(TipoMovimentacao tipo, String valor, String origem, Long referenciaId) {
-		movimentacaoFinanceiraRepository.saveAndFlush(criar(tipo, valor, origem, referenciaId));
+		salvar(tipo, valor, origem, referenciaId, LocalDateTime.now());
+	}
+
+	private MovimentacaoFinanceira salvar(
+			TipoMovimentacao tipo,
+			String valor,
+			String origem,
+			Long referenciaId,
+			LocalDateTime data) {
+		MovimentacaoFinanceira movimentacao = criar(tipo, valor, origem, referenciaId);
+		movimentacao.setData(data);
+		return movimentacaoFinanceiraRepository.saveAndFlush(movimentacao);
 	}
 
 	private MovimentacaoFinanceira criar(
