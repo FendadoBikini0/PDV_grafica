@@ -2,76 +2,105 @@
 
 ## 1. Visão geral
 
-O DigitalVX é uma aplicação web desenvolvida em Java com Spring Boot. Sua arquitetura separa a interface, o processamento das requisições, o acesso aos dados e a persistência no banco de dados.
+O DigitalVX é uma aplicação web desenvolvida em Java com Spring Boot para apoiar a gestão de uma gráfica. O sistema reúne cadastros, gerenciamento de pedidos, controle de estoque, autenticação de usuários e registro financeiro.
+
+A arquitetura separa a interface web, o processamento das requisições, as regras de negócio, o acesso aos dados e a persistência no banco de dados.
 
 ## 2. Tecnologias e responsabilidades
 
-- **Java:** linguagem utilizada no desenvolvimento.
+- **Java 21:** linguagem de desenvolvimento.
 - **Spring Boot:** estrutura principal da aplicação.
-- **Spring MVC:** gerenciamento das requisições HTTP por meio dos controllers.
-- **Spring Data JPA:** abstração para consultas e operações de persistência.
-- **Hibernate:** implementação JPA responsável pelo mapeamento objeto-relacional.
-- **PostgreSQL:** banco de dados relacional.
-- **Thymeleaf e HTML:** renderização das páginas web, conforme a configuração do projeto.
-- **CSS:** estilização e adaptação visual da interface.
-- **Maven:** gerenciamento de dependências e execução dos testes.
+- **Spring MVC:** gerenciamento das requisições HTTP.
+- **Spring Data JPA e Hibernate:** persistência e mapeamento objeto-relacional.
+- **PostgreSQL:** banco de dados da aplicação.
+- **Spring Security:** autenticação e controle de acesso.
+- **Thymeleaf, HTML e CSS:** construção e apresentação das páginas web.
+- **Maven:** gerenciamento de dependências, compilação e testes.
+- **JUnit e Spring Boot Test:** testes automatizados.
+- **H2:** banco de dados utilizado nos testes.
 
 ## 3. Organização da aplicação
 
 ### Controllers
 
-Os controllers recebem as requisições do navegador, executam as operações necessárias e retornam páginas ou respostas.
+Recebem as requisições do navegador, interagem com os serviços ou repositórios e retornam as páginas correspondentes.
 
-Exemplos:
-- `HomeController`: apresenta o painel inicial e seus indicadores.
-- `ClienteController`: gerencia as operações relacionadas aos clientes.
-- `ProdutoController`: gerencia as operações relacionadas aos produtos.
-- `ServicoController`: gerencia as operações relacionadas aos serviços.
+Principais classes:
+- `HomeController`: painel inicial e indicadores.
+- `ClienteController`: gerenciamento de clientes.
+- `FuncionarioController`: gerenciamento de funcionários.
+- `ProdutoController`: gerenciamento de produtos.
+- `ServicoController`: gerenciamento de serviços.
+- `PedidoController`: criação e acompanhamento de pedidos.
+- `EstoqueController`: consulta das quantidades disponíveis.
+- `FinanceiroController`: registro e consulta de movimentações financeiras.
+- `UsuarioController`: gerenciamento de usuários.
+- `LoginController`: página de autenticação.
+
+### Services
+
+Concentram regras de negócio e operações que precisam de validações específicas.
+
+Principais classes:
+- `PedidoService`: validação de pedidos, transições de status e baixa de estoque na entrega.
+- `MovimentacaoFinanceiraService`: registro e consulta de entradas e saídas financeiras.
+- `UsuarioService`: operações relacionadas aos usuários.
+- `UsuarioDetailsService`: carregamento dos usuários para autenticação.
+- `AdminBootstrapService`: inicialização do primeiro administrador conforme a configuração do ambiente.
 
 ### Repositories
 
-Os repositories permitem consultar, salvar, atualizar e excluir registros no banco de dados por meio do Spring Data JPA.
+Realizam consultas e operações de persistência utilizando Spring Data JPA.
 
 Exemplos:
 - `ClienteRepository`
+- `FuncionarioRepository`
 - `ProdutoRepository`
 - `ServicoRepository`
+- `PedidoRepository`
+- `ItemPedidoRepository`
+- `UsuarioRepository`
+- `MovimentacaoFinanceiraRepository`
 
-### Entidades
+### Entidades e DTOs
 
-As entidades representam os dados persistidos no banco.
+As entidades representam os dados persistidos, enquanto os DTOs transportam dados recebidos pelos formulários sem expor diretamente toda a estrutura das entidades.
 
-- `Pessoa`: classe base para pessoas cadastradas.
-- `Cliente`: representa os clientes.
-- `Funcionario`: representa os funcionários.
-- `Produto`: representa os produtos comercializados.
-- `Servico`: representa os serviços oferecidos.
-- `Pedido`: representa uma venda ou pedido.
-- `ItemPedido`: representa cada produto ou serviço incluído em um pedido.
-- `Pagamento`: representa um pagamento associado a um pedido.
+Entre as entidades estão `Pessoa`, `Cliente`, `Funcionario`, `Produto`, `Servico`, `Pedido`, `ItemPedido`, `Pagamento`, `Usuario` e `MovimentacaoFinanceira`.
+
+O projeto também utiliza `PedidoForm` e `UsuarioForm` para receber dados de formulários.
 
 ### Interface web
 
-As páginas HTML apresentam formulários, tabelas, indicadores e opções de navegação. O CSS define o padrão visual compartilhado entre as telas.
+As páginas são implementadas com Thymeleaf, HTML e CSS. Os templates apresentam formulários, tabelas, indicadores e opções de navegação.
 
 ## 4. Fluxo de uma requisição
 
 1. O usuário acessa uma página pelo navegador.
-2. A requisição HTTP é encaminhada ao controller correspondente.
-3. O controller utiliza o repository para consultar ou persistir dados.
-4. O Spring Data JPA e o Hibernate realizam a comunicação com o PostgreSQL.
-5. O resultado é devolvido à interface para apresentação ao usuário.
+2. O Spring Security verifica a autenticação e as permissões aplicáveis.
+3. A requisição chega ao controller correspondente.
+4. O controller executa a operação necessária, utilizando serviços e repositórios.
+5. O Spring Data JPA e o Hibernate realizam as operações no PostgreSQL.
+6. O resultado é apresentado ao usuário por meio das páginas Thymeleaf.
 
-## 5. Persistência dos dados
+## 5. Persistência e regras de negócio
 
-O mapeamento objeto-relacional é realizado por meio das entidades JPA e de suas anotações, como `@Entity`, `@Id`, `@ManyToOne` e `@OneToMany`.
+As entidades são mapeadas para o banco relacional por meio do Jakarta Persistence (JPA).
 
-As operações de persistência utilizam o PostgreSQL, permitindo manter os registros entre diferentes execuções da aplicação.
+No fluxo de pedidos, os produtos e serviços são registrados como itens. Os pedidos percorrem os estados `ABERTO`, `EM PRODUÇÃO`, `PRONTO` e `ENTREGUE`. A baixa do estoque ocorre na entrega, após a validação da disponibilidade dos produtos. Serviços não afetam o estoque.
 
-## 6. Estado atual
+O módulo financeiro permite registrar manualmente entradas e saídas, consultar o histórico e gerar relatórios por período.
 
-A arquitetura já é utilizada nos módulos de clientes, produtos e serviços. O fluxo completo de pedidos, pagamentos, controle de estoque e autenticação ainda está em desenvolvimento ou precisa de validação.
+## 6. Segurança
 
-## 7. Evolução prevista
+A aplicação utiliza Spring Security para autenticação por formulário e controle de acesso por perfil. As senhas dos usuários são armazenadas com hash BCrypt. O acesso à área de usuários é restrito ao perfil `ADMINISTRADOR`.
 
-A arquitetura será ampliada para suportar o registro de pedidos e itens, o controle de estoque, os pagamentos e a autenticação dos usuários, mantendo a separação de responsabilidades entre interface, controllers, repositories e entidades.
+As credenciais do banco de dados e os dados utilizados para a criação inicial do administrador são configurados por variáveis de ambiente.
+
+## 7. Estado atual
+
+A arquitetura atende aos módulos de cadastros, pedidos, estoque, autenticação e controle financeiro implementados nesta versão acadêmica. O projeto possui testes automatizados para partes dos controllers, repositories e services.
+
+## 8. Evolução prevista
+
+A arquitetura poderá ser ampliada em versões futuras com novas funcionalidades, melhorias de segurança, relatórios e integrações, mantendo a separação de responsabilidades existente.
